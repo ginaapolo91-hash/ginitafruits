@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Inventario Bodega</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,500;0,9..40,700;0,9..40,800;1,9..40,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:#f1f5f9;min-height:100vh;color:#0f172a;}
+table{border-collapse:collapse;}
+::selection{background:#c7d2fe;}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+input:focus,select:focus{outline:none;border-color:#6366f1!important;box-shadow:0 0 0 3px rgba(99,102,241,.15)!important;}
+button:hover:not(:disabled){filter:brightness(1.05);}
+button:active:not(:disabled){transform:scale(.98);}
+button:disabled{opacity:.5;cursor:not-allowed;}
+
+/* HEADER */
+header{background:#0f172a;padding:20px 24px;border-bottom:3px solid #6366f1;position:sticky;top:0;z-index:50;}
+.header-inner{max-width:1100px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;}
+.logo{display:flex;align-items:center;gap:12px;}
+.logo-icon{width:42px;height:42px;background:#6366f1;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;}
+.logo h1{font-size:20px;font-weight:800;color:#fff;letter-spacing:-.5px;}
+.logo p{font-size:13px;color:#94a3b8;}
+.btn-header{display:flex;align-items:center;gap:6px;padding:10px 18px;background:#6366f1;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;}
+
+/* SUMMARY */
+.summary-grid{max-width:1100px;margin:20px auto 0;padding:0 24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;}
+.summary-card{background:#fff;border-radius:12px;padding:16px 18px;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+.summary-label{color:#94a3b8;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;}
+.summary-value{font-size:26px;font-weight:800;margin-top:6px;}
+
+/* TABS */
+.tab-nav{max-width:1100px;margin:20px auto 0;padding:0 24px;display:flex;gap:6px;overflow-x:auto;}
+.tab-btn{display:flex;align-items:center;gap:6px;padding:10px 18px;background:#fff;border:2px solid #e2e8f0;border-radius:8px;font-size:14px;font-weight:600;color:#64748b;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;transition:all .15s;}
+.tab-btn.active{background:#6366f1;border-color:#6366f1;color:#fff;}
+.tab-btn.active.green{background:#16a34a;border-color:#16a34a;}
+.tab-btn.active.red{background:#dc2626;border-color:#dc2626;}
+
+/* CONTENT */
+.content{max-width:1100px;margin:0 auto;padding:20px 24px 40px;}
+
+/* TWO-COL LAYOUT */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;}
+@media(max-width:860px){.two-col{grid-template-columns:1fr;}}
+
+/* FORM CARD */
+.form-card{background:#fff;border-radius:14px;border:2px solid #16a34a;padding:24px;box-shadow:0 2px 12px rgba(0,0,0,.05);}
+.form-card.exit-card{border-color:#dc2626;}
+.form-card.neutral{border-color:#e2e8f0;}
+.form-title{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:800;color:#16a34a;margin-bottom:4px;}
+.form-title.exit-title{color:#dc2626;}
+.form-title.neutral-title{color:#0f172a;}
+.form-sub{font-size:13px;color:#94a3b8;margin-bottom:16px;}
+
+/* LABELS & INPUTS */
+label{display:block;font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;}
+input[type=text],input[type=number],input[type=date],select{width:100%;padding:10px 14px;border:2px solid #e2e8f0;border-radius:8px;font-size:14px;font-family:'DM Sans',sans-serif;color:#0f172a;background:#f8fafc;transition:all .15s;}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;}
+.full-col{grid-column:1/-1;}
+.req{color:#dc2626;font-weight:700;}
+
+/* TOTAL INPUT ROW */
+.total-input-row{display:flex;align-items:flex-end;gap:8px;}
+.total-input-row input{flex:1;}
+.btn-calc{display:inline-flex;align-items:center;gap:5px;padding:10px 12px;background:#6366f1;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;flex-shrink:0;}
+
+/* TOTAL DISPLAY (per-item) */
+.item-total-display{background:#f0fdf4;border:2px solid #86efac;border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;margin-top:10px;}
+.item-total-display.exit-td{background:#fff5f5;border-color:#fca5a5;}
+.item-total-label{font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.8px;}
+.item-total-val{font-size:18px;font-weight:800;color:#16a34a;}
+.item-total-val.exit-v{color:#dc2626;}
+.item-total-val.zero{color:#94a3b8;}
+
+/* ADD TO LIST BUTTON */
+.btn-add-list{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:11px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:14px;}
+.btn-add-list.exit-add{background:#dc2626;}
+
+/* SEARCH + PICKER */
+.search-box{display:flex;align-items:center;gap:8px;padding:10px 14px;border:2px solid #e2e8f0;border-radius:8px;background:#f8fafc;color:#94a3b8;}
+.search-input{flex:1;border:none;outline:none;font-size:14px;font-family:'DM Sans',sans-serif;color:#0f172a;background:transparent;}
+.picker-wrap{position:relative;margin-bottom:12px;}
+.dropdown{position:absolute;top:100%;left:0;right:0;margin-top:4px;background:#fff;border:2px solid #e2e8f0;border-radius:10px;box-shadow:0 12px 40px rgba(0,0,0,.12);z-index:200;max-height:240px;overflow-y:auto;display:none;}
+.dropdown.open{display:block;}
+.dd-item{padding:11px 14px;display:flex;align-items:center;gap:12px;cursor:pointer;border-bottom:1px solid #f1f5f9;font-size:13px;}
+.dd-item:hover{background:#f8fafc;}
+.dd-item:last-child{border-bottom:none;}
+.dd-empty{padding:16px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px;}
+.prod-code{font-family:'JetBrains Mono',monospace;font-size:11px;background:#e2e8f0;padding:2px 7px;border-radius:4px;font-weight:600;}
+.prod-name{font-weight:600;flex:1;}
+.prod-cost{color:#16a34a;font-weight:700;font-size:12px;}
+.selected-prod{display:flex;justify-content:space-between;align-items:center;padding:11px 14px;background:#f0fdf4;border:2px solid #86efac;border-radius:8px;margin-bottom:10px;}
+.selected-prod.exit-sel{background:#fff5f5;border-color:#fca5a5;}
+.remove-btn{background:transparent;border:none;cursor:pointer;color:#94a3b8;padding:4px;font-size:15px;line-height:1;}
+.add-new-btn{display:flex;align-items:center;gap:6px;padding:8px 14px;background:#6366f1;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;}
+
+/* ── CART / LIST ── */
+.cart-card{background:#fff;border-radius:14px;border:2px solid #e2e8f0;padding:24px;box-shadow:0 2px 12px rgba(0,0,0,.05);display:flex;flex-direction:column;gap:0;}
+.cart-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+.cart-title{font-size:16px;font-weight:800;color:#0f172a;display:flex;align-items:center;gap:8px;}
+.cart-badge{background:#6366f1;color:#fff;border-radius:20px;padding:2px 10px;font-size:12px;font-weight:700;}
+.cart-badge.green-b{background:#16a34a;}
+.cart-badge.red-b{background:#dc2626;}
+.btn-clear-cart{background:transparent;border:1px solid #e2e8f0;border-radius:7px;padding:6px 12px;font-size:12px;font-weight:700;color:#94a3b8;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.btn-clear-cart:hover{color:#dc2626;border-color:#fca5a5;}
+
+/* Cart table */
+.cart-table{width:100%;font-size:13px;border-collapse:collapse;}
+.cart-table th{text-align:left;padding:8px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;border-bottom:2px solid #e2e8f0;white-space:nowrap;}
+.cart-table td{padding:10px;border-bottom:1px solid #f1f5f9;vertical-align:middle;}
+.cart-table tr:last-child td{border-bottom:none;}
+.cart-table tr:hover td{background:#f8fafc;}
+
+/* Cart footer */
+.cart-footer{margin-top:16px;padding-top:16px;border-top:2px solid #e2e8f0;}
+.cart-meta{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
+.cart-total-row{display:flex;justify-content:space-between;align-items:center;background:#f8fafc;border-radius:10px;padding:14px 18px;margin-bottom:14px;}
+.cart-total-label{font-size:13px;font-weight:700;color:#64748b;}
+.cart-total-amount{font-size:24px;font-weight:800;color:#0f172a;}
+.btn-submit-cart{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;background:#16a34a;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:800;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;}
+.btn-submit-cart.exit-submit{background:#dc2626;}
+.btn-submit-cart:disabled{opacity:.4;cursor:not-allowed;}
+.cart-empty{text-align:center;padding:32px 16px;color:#94a3b8;font-size:14px;}
+
+/* HISTORY CARD */
+.history-card{background:#fff;border-radius:14px;padding:24px;box-shadow:0 2px 12px rgba(0,0,0,.05);}
+.filter-row{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+.filter-btn{padding:8px 16px;border:2px solid #e2e8f0;border-radius:8px;background:#fff;font-size:13px;font-weight:600;color:#64748b;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;}
+.filter-btn.active{background:#16a34a;border-color:#16a34a;color:#fff;}
+.filter-btn.active.red-f{background:#dc2626;border-color:#dc2626;color:#fff;}
+.table-scroll{overflow-x:auto;}
+table{width:100%;font-size:13px;}
+th{text-align:left;padding:10px 12px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;border-bottom:2px solid #e2e8f0;white-space:nowrap;}
+td{padding:10px 12px;border-bottom:1px solid #f1f5f9;vertical-align:middle;}
+tr:hover td{background:#f8fafc;}
+.badge{padding:3px 10px;border-radius:6px;font-size:12px;font-weight:700;display:inline-block;}
+.badge-in{background:#dcfce7;color:#16a34a;}
+.badge-out{background:#fee2e2;color:#dc2626;}
+.badge-stock-pos{background:#dcfce7;color:#16a34a;}
+.badge-stock-neg{background:#fee2e2;color:#dc2626;}
+.badge-stock-zero{background:#f1f5f9;color:#64748b;}
+.del-btn{background:transparent;border:none;cursor:pointer;color:#cbd5e1;padding:4px;transition:color .15s;border-radius:4px;}
+.del-btn:hover{color:#dc2626;}
+.empty-state{text-align:center;padding:40px 20px;color:#94a3b8;display:flex;flex-direction:column;align-items:center;gap:8px;}
+
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(15,23,42,.5);display:flex;align-items:center;justify-content:center;z-index:9000;animation:fadeIn .2s ease;padding:24px;}
+.modal{background:#fff;border-radius:16px;padding:28px;width:100%;max-width:420px;box-shadow:0 24px 64px rgba(0,0,0,.2);}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+.modal-header h3{font-size:18px;font-weight:800;}
+.close-btn{background:transparent;border:none;cursor:pointer;color:#94a3b8;padding:4px;font-size:18px;}
+.modal-fields{display:flex;flex-direction:column;gap:14px;}
+.btn-primary{display:inline-flex;align-items:center;gap:6px;padding:12px 24px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;margin-top:16px;}
+.btn-primary.indigo{background:#6366f1;}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;z-index:9999;padding:12px 20px;border-radius:10px;font-size:14px;font-weight:600;box-shadow:0 8px 32px rgba(0,0,0,.25);display:flex;align-items:center;gap:8px;animation:slideUp .3s ease;}
+.toast.success{background:#16a34a;color:#fff;}
+.toast.error{background:#dc2626;color:#fff;}
+.toast.warning{background:#d97706;color:#fff;}
+.toast.info{background:#0891b2;color:#fff;}
+
+.mono{font-family:'JetBrains Mono',monospace;font-size:12px;}
+.hidden{display:none!important;}
+@media(max-width:600px){.grid-2{grid-template-columns:1fr;}.summary-grid{grid-template-columns:1fr 1fr;}.cart-meta{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-icon">
+        <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m16.5 9.4-9-5.19"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.27 6.96 12 12.01l8.73-5.05M12 22.08V12"/></svg>
+      </div>
+      <div>
+        <h1>Inventario Bodega</h1>
+        <p>Control de ingresos y salidas</p>
+      </div>
+    </div>
+    <button class="btn-header" onclick="openModal()">
+      <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+      Nuevo Producto
+    </button>
+  </div>
+</header>
+
+<div class="summary-grid" id="summary-grid"></div>
+
+<div class="tab-nav">
+  <button class="tab-btn active green" id="tab-entry" onclick="switchTab('entry')">
+    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0-4-4m4 4 4-4"/><rect x="3" y="15" width="18" height="6" rx="2"/></svg>
+    Ingreso
+  </button>
+  <button class="tab-btn" id="tab-exit" onclick="switchTab('exit')">
+    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 15V3m0 0-4 4m4-4 4 4"/><rect x="3" y="15" width="18" height="6" rx="2"/></svg>
+    Salida
+  </button>
+  <button class="tab-btn" id="tab-products" onclick="switchTab('products')">
+    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m16.5 9.4-9-5.19"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.27 6.96 12 12.01l8.73-5.05M12 22.08V12"/></svg>
+    Productos
+  </button>
+  <button class="tab-btn" id="tab-history" onclick="switchTab('history')">
+    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+    Historial
+  </button>
+</div>
+
+<div class="content">
+  <div id="panel-entry"></div>
+  <div id="panel-exit" class="hidden"></div>
+  <div id="panel-products" class="hidden"></div>
+  <div id="panel-history" class="hidden"></div>
+</div>
+
+<!-- ADD PRODUCT MODAL -->
+<div id="modal-overlay" class="overlay hidden" onclick="closeModal()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Añadir Nuevo Producto</h3>
+      <button class="close-btn" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-fields">
+      <div><label>Código</label><input type="text" id="m-code" placeholder="Ej: 7861000123"/></div>
+      <div><label>Nombre</label><input type="text" id="m-name" placeholder="Ej: Arroz 1kg"/></div>
+      <div><label>Costo ($)</label><input type="number" id="m-cost" step="0.01" placeholder="0.00"/></div>
+    </div>
+    <button class="btn-primary indigo" style="width:100%" onclick="saveModalProduct()">
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>
+      Guardar Producto
+    </button>
+  </div>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+
+<script>
+// ── Config ─────────────────────────────────────────────────────
+const SHEETS_URL = "https://script.google.com/macros/s/AKfycbxGoGV9iB2Ns9ydwACjSXJ7Ovd_YfEHwfZEopcywE41Ph8lJtB_SOg8OeZj5cKIM9MgLg/exec";
+const STORAGE_KEY = "fruver-inventario-v3";
+const EMAIL = "bryanligabow@gmail.com";
+
+// ── Utils ──────────────────────────────────────────────────────
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+const today = () => new Date().toISOString().slice(0,10);
+const fmtDate = d => { if(!d) return '—'; const [y,m,dd]=d.split('-'); return `${dd}/${m}/${y}`; };
+const fmt$ = n => '$'+Number(n).toFixed(2);
+const esc = s => (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+// ── State ──────────────────────────────────────────────────────
+let state = { products:[], entries:[], exits:[] };
+let currentTab = 'entry';
+
+// Cart state (in-progress lists, not yet submitted)
+let entryCart = [];   // [{rowId, productId, productCode, productName, qty, price}]
+let exitCart  = [];
+
+// Picker selection
+let pickerSelected = { entry: null, exit: null };
+
+function save() { try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){} }
+function load() {
+  try {
+    const d = localStorage.getItem(STORAGE_KEY);
+    if(d){ state = JSON.parse(d); return; }
+  } catch(e){}
+  state.products = FRUVER_PRODUCTS.map(p=>({...p}));
+  save();
+}
+
+// ── Google Sheets ──────────────────────────────────────────────
+async function sendToSheets(payload) {
+  try {
+    await fetch(SHEETS_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+    return true;
+  } catch(e){ return false; }
+}
+
+// ── Picker ─────────────────────────────────────────────────────
+function renderPicker(type) {
+  const sel = pickerSelected[type];
+  const isExit = type === 'exit';
+  if(sel) {
+    return `<div class="selected-prod ${isExit?'exit-sel':''}">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <span class="prod-code">${esc(sel.code)}</span>
+        <strong>${esc(sel.name)}</strong>
+        <span style="color:#16a34a;font-weight:700;font-size:13px">${fmt$(sel.cost)}</span>
+      </div>
+      <button class="remove-btn" onclick="clearPicker('${type}')">✕</button>
+    </div>`;
+  }
+  return `<div class="picker-wrap" id="picker-wrap-${type}">
+    <label>Buscar Producto</label>
+    <div class="search-box">
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input class="search-input" id="picker-input-${type}" placeholder="Código o nombre del producto..."
+        oninput="filterPicker('${type}')" onfocus="showDD('${type}')" onblur="setTimeout(()=>hideDD('${type}'),200)"/>
+    </div>
+    <div class="dropdown" id="picker-dd-${type}"></div>
+  </div>`;
+}
+function filterPicker(type) {
+  const q = (document.getElementById('picker-input-'+type)?.value||'').trim().toLowerCase();
+  const dd = document.getElementById('picker-dd-'+type);
+  if(!dd) return;
+  if(!q){ dd.classList.remove('open'); return; }
+  const matches = state.products.filter(p=>p.code.toLowerCase().includes(q)||p.name.toLowerCase().includes(q)).slice(0,15);
+  dd.innerHTML = matches.length
+    ? matches.map(p=>`<div class="dd-item" onmousedown="selectPicker('${type}','${p.id}')">
+        <span class="prod-code">${esc(p.code)}</span>
+        <span class="prod-name">${esc(p.name)}</span>
+        <span class="prod-cost">${fmt$(p.cost)}</span>
+      </div>`).join('')
+    : `<div class="dd-empty"><span style="color:#94a3b8">No encontrado</span>
+        <button class="add-new-btn" onmousedown="openModal()">+ Añadir producto</button></div>`;
+  dd.classList.add('open');
+}
+function showDD(type){ filterPicker(type); }
+function hideDD(type){ document.getElementById('picker-dd-'+type)?.classList.remove('open'); }
+function selectPicker(type, pid) {
+  pickerSelected[type] = state.products.find(x=>x.id===pid)||null;
+  renderPanel(currentTab);
+}
+function clearPicker(type) {
+  pickerSelected[type] = null;
+  renderPanel(currentTab);
+}
+
+// ── Item-level total helpers ───────────────────────────────────
+function updateItemTotal(prefix) {
+  const qty   = parseFloat(document.getElementById(prefix+'-qty')?.value||'0');
+  const price = parseFloat(document.getElementById(prefix+'-price')?.value||'0');
+  const total = qty>0 && price>0 ? qty*price : 0;
+  const el = document.getElementById(prefix+'-itotal');
+  if(!el) return;
+  const isExit = prefix==='x';
+  el.textContent = fmt$(total);
+  el.className = 'item-total-val'+(isExit?' exit-v':'')+(total===0?' zero':'');
+}
+function calcUnitFromTotal(prefix) {
+  const qty        = parseFloat(document.getElementById(prefix+'-qty')?.value||'0');
+  const totalPaid  = parseFloat(document.getElementById(prefix+'-totalinput')?.value||'0');
+  if(qty>0 && totalPaid>0){
+    document.getElementById(prefix+'-price').value = (totalPaid/qty).toFixed(4);
+    updateItemTotal(prefix);
+    toast('Precio unitario calculado ✓','info');
+  } else { toast('Ingresa la cantidad y el total pagado primero','error'); }
+}
+
+// ── ENTRY PANEL ────────────────────────────────────────────────
+function renderEntry() {
+  const todayVal = today();
+  const cartTotal = entryCart.reduce((s,r)=>s+r.qty*r.price, 0);
+  document.getElementById('panel-entry').innerHTML = `
+  <div class="two-col">
+    <!-- LEFT: add item -->
+    <div class="form-card">
+      <div class="form-title">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0-4-4m4 4 4-4"/><rect x="3" y="15" width="18" height="6" rx="2"/></svg>
+        Agregar producto a la lista
+      </div>
+      <p class="form-sub">Busca el producto y llena cantidad y precio — repite para cada ítem</p>
+      ${renderPicker('entry')}
+      <div class="grid-2">
+        <div><label>Cantidad <span class="req">*</span></label>
+          <input type="number" id="e-qty" min="1" placeholder="0" oninput="updateItemTotal('e')"/></div>
+        <div><label>Precio unitario ($) <span class="req">*</span></label>
+          <input type="number" id="e-price" step="0.0001" min="0" placeholder="0.00" oninput="updateItemTotal('e')"/></div>
+        <div class="full-col">
+          <label>O ingresa el total pagado y calcula el precio unitario</label>
+          <div class="total-input-row">
+            <input type="number" id="e-totalinput" step="0.01" min="0" placeholder="Ej: 25.50"/>
+            <button class="btn-calc" onclick="calcUnitFromTotal('e')" title="Total ÷ Cantidad = Precio unitario">
+              ÷ Calcular precio
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="item-total-display">
+        <span class="item-total-label">Total de este ítem</span>
+        <span id="e-itotal" class="item-total-val zero">$0.00</span>
+      </div>
+      <button class="btn-add-list" onclick="addToEntryCart()">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        Agregar a la lista
+      </button>
+    </div>
+
+    <!-- RIGHT: cart -->
+    <div class="cart-card">
+      <div class="cart-header">
+        <div class="cart-title">
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          Lista de ingreso
+          <span class="cart-badge green-b" id="e-cart-count">${entryCart.length}</span>
+        </div>
+        <button class="btn-clear-cart" onclick="clearEntryCart()">Limpiar lista</button>
+      </div>
+      ${renderCartTable(entryCart, 'entry')}
+      ${entryCart.length > 0 ? `
+      <div class="cart-footer">
+        <div class="cart-total-row">
+          <span class="cart-total-label">TOTAL DE LA LISTA</span>
+          <span class="cart-total-amount">${fmt$(cartTotal)}</span>
+        </div>
+        <div class="cart-meta">
+          <div><label>Proveedor <span class="req">*</span></label>
+            <input type="text" id="e-supplier" placeholder="Nombre del proveedor..."/></div>
+          <div><label>Responsable <span class="req">*</span></label>
+            <input type="text" id="e-responsible" placeholder="Nombre del responsable..."/></div>
+          <div><label>Fecha</label>
+            <input type="date" id="e-date" value="${todayVal}"/></div>
+          <div><label>Notas (opcional)</label>
+            <input type="text" id="e-notes" placeholder="Observaciones generales..."/></div>
+        </div>
+        <button class="btn-submit-cart" id="e-submit-btn" onclick="submitEntryCart()">
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+          Registrar ingreso y enviar a Google Sheets
+        </button>
+      </div>` : ''}
+    </div>
+  </div>`;
+}
+
+function addToEntryCart() {
+  const sel   = pickerSelected['entry'];
+  const qty   = parseInt(document.getElementById('e-qty')?.value||'0');
+  const price = parseFloat(document.getElementById('e-price')?.value||'0');
+  if(!sel)   { toast('Selecciona un producto primero','error'); return; }
+  if(qty<1)  { toast('Ingresa una cantidad válida','error'); return; }
+  if(!price) { toast('Ingresa el precio unitario','error'); return; }
+  entryCart.push({ rowId:uid(), productId:sel.id, productCode:sel.code, productName:sel.name, qty, price });
+  pickerSelected['entry'] = null;
+  toast(`"${sel.name}" agregado a la lista ✓`, 'success');
+  renderEntry();
+}
+
+function removeFromEntryCart(rowId) {
+  entryCart = entryCart.filter(r=>r.rowId!==rowId);
+  renderEntry();
+}
+
+function clearEntryCart() {
+  if(entryCart.length===0) return;
+  if(!confirm('¿Limpiar toda la lista de ingreso?')) return;
+  entryCart = [];
+  renderEntry();
+}
+
+async function submitEntryCart() {
+  if(entryCart.length===0) { toast('La lista está vacía','error'); return; }
+  const supplier    = (document.getElementById('e-supplier')?.value||'').trim();
+  const responsible = (document.getElementById('e-responsible')?.value||'').trim();
+  const date        = document.getElementById('e-date')?.value||today();
+  const notes       = document.getElementById('e-notes')?.value||'';
+  if(!supplier)    { toast('Ingresa el nombre del proveedor','error'); return; }
+  if(!responsible) { toast('Ingresa el nombre del responsable','error'); return; }
+
+  const btn = document.getElementById('e-submit-btn');
+  btn.disabled = true;
+  btn.innerHTML = `<svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg> Enviando…`;
+
+  // Save all items to state
+  const newEntries = entryCart.map(r => ({
+    id: uid(), productId: r.productId, quantity: r.qty, price: r.price,
+    date, supplier, responsible, notes
+  }));
+  state.entries.push(...newEntries);
+  save();
+  renderSummary();
+
+  // Send full list to Sheets in one payload
+  const ok = await sendToSheets({
+    type: 'ingreso',
+    fecha: date, proveedor: supplier, responsable: responsible, notas: notes,
+    email: EMAIL,
+    items: entryCart.map(r=>({ codigo:r.productCode, producto:r.productName, cantidad:r.qty, precio:r.price, total:r.qty*r.price })),
+    total_general: entryCart.reduce((s,r)=>s+r.qty*r.price,0)
+  });
+
+  toast(ok
+    ? `✓ ${entryCart.length} producto(s) registrados y enviados a Sheets`
+    : `${entryCart.length} producto(s) guardados (sin conexión a Sheets)`,
+    ok ? 'success' : 'warning');
+
+  entryCart = [];
+  pickerSelected['entry'] = null;
+  renderEntry();
+}
+
+// ── EXIT PANEL ─────────────────────────────────────────────────
+function renderExit() {
+  const todayVal = today();
+  const cartTotal = exitCart.reduce((s,r)=>s+r.qty*r.price, 0);
+  document.getElementById('panel-exit').innerHTML = `
+  <div class="two-col">
+    <!-- LEFT: add item -->
+    <div class="form-card exit-card">
+      <div class="form-title exit-title">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 15V3m0 0-4 4m4-4 4 4"/><rect x="3" y="15" width="18" height="6" rx="2"/></svg>
+        Agregar producto a la lista
+      </div>
+      <p class="form-sub">Busca el producto y llena cantidad y precio — repite para cada ítem</p>
+      ${renderPicker('exit')}
+      <div class="grid-2">
+        <div><label>Cantidad <span class="req">*</span></label>
+          <input type="number" id="x-qty" min="1" placeholder="0" oninput="updateItemTotal('x')"/></div>
+        <div><label>Precio unitario ($) <span class="req">*</span></label>
+          <input type="number" id="x-price" step="0.0001" min="0" placeholder="0.00" oninput="updateItemTotal('x')"/></div>
+        <div class="full-col">
+          <label>O ingresa el total pagado y calcula el precio unitario</label>
+          <div class="total-input-row">
+            <input type="number" id="x-totalinput" step="0.01" min="0" placeholder="Ej: 25.50"/>
+            <button class="btn-calc" onclick="calcUnitFromTotal('x')" title="Total ÷ Cantidad = Precio unitario">
+              ÷ Calcular precio
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="item-total-display exit-td">
+        <span class="item-total-label">Total de este ítem</span>
+        <span id="x-itotal" class="item-total-val exit-v zero">$0.00</span>
+      </div>
+      <button class="btn-add-list exit-add" onclick="addToExitCart()">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        Agregar a la lista
+      </button>
+    </div>
+
+    <!-- RIGHT: cart -->
+    <div class="cart-card">
+      <div class="cart-header">
+        <div class="cart-title">
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          Lista de salida
+          <span class="cart-badge red-b" id="x-cart-count">${exitCart.length}</span>
+        </div>
+        <button class="btn-clear-cart" onclick="clearExitCart()">Limpiar lista</button>
+      </div>
+      ${renderCartTable(exitCart, 'exit')}
+      ${exitCart.length > 0 ? `
+      <div class="cart-footer">
+        <div class="cart-total-row">
+          <span class="cart-total-label">TOTAL DE LA LISTA</span>
+          <span class="cart-total-amount">${fmt$(cartTotal)}</span>
+        </div>
+        <div class="cart-meta">
+          <div><label>Proveedor <span class="req">*</span></label>
+            <input type="text" id="x-supplier" placeholder="Nombre del proveedor..."/></div>
+          <div><label>Responsable <span class="req">*</span></label>
+            <input type="text" id="x-responsible" placeholder="Nombre del responsable..."/></div>
+          <div><label>Motivo</label>
+            <select id="x-reason"><option>Caducado</option><option>Dañado</option><option>Merma</option><option>Otro</option></select></div>
+          <div><label>Fecha</label>
+            <input type="date" id="x-date" value="${todayVal}"/></div>
+          <div class="full-col"><label>Notas (opcional)</label>
+            <input type="text" id="x-notes" placeholder="Observaciones generales..."/></div>
+        </div>
+        <button class="btn-submit-cart exit-submit" id="x-submit-btn" onclick="submitExitCart()">
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+          Registrar salida y enviar a Google Sheets
+        </button>
+      </div>` : ''}
+    </div>
+  </div>`;
+}
+
+function renderCartTable(cart, type) {
+  if(cart.length===0) return `<div class="cart-empty">
+    <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" style="color:#cbd5e1;margin-bottom:8px"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+    <div>Aún no hay productos en la lista</div>
+    <div style="font-size:12px;margin-top:4px">Agrega productos desde el formulario de la izquierda</div>
+  </div>`;
+
+  const fn = type==='entry' ? 'removeFromEntryCart' : 'removeFromExitCart';
+  return `<div class="table-scroll"><table class="cart-table">
+    <thead><tr>
+      <th>Código</th><th>Producto</th><th>Cant.</th><th>Precio unit.</th><th>Total</th><th></th>
+    </tr></thead>
+    <tbody>
+      ${cart.map(r=>`<tr>
+        <td class="mono">${esc(r.productCode)}</td>
+        <td style="font-weight:600">${esc(r.productName)}</td>
+        <td style="font-weight:700">${r.qty}</td>
+        <td>${fmt$(r.price)}</td>
+        <td style="font-weight:800;color:${type==='exit'?'#dc2626':'#16a34a'}">${fmt$(r.qty*r.price)}</td>
+        <td><button class="del-btn" onclick="${fn}('${r.rowId}')" title="Quitar">
+          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z"/></svg>
+        </button></td>
+      </tr>`).join('')}
+    </tbody>
+  </table></div>`;
+}
+
+function addToExitCart() {
+  const sel   = pickerSelected['exit'];
+  const qty   = parseInt(document.getElementById('x-qty')?.value||'0');
+  const price = parseFloat(document.getElementById('x-price')?.value||'0');
+  if(!sel)   { toast('Selecciona un producto primero','error'); return; }
+  if(qty<1)  { toast('Ingresa una cantidad válida','error'); return; }
+  if(!price) { toast('Ingresa el precio unitario','error'); return; }
+  exitCart.push({ rowId:uid(), productId:sel.id, productCode:sel.code, productName:sel.name, qty, price });
+  pickerSelected['exit'] = null;
+  toast(`"${sel.name}" agregado a la lista ✓`, 'success');
+  renderExit();
+}
+
+function removeFromExitCart(rowId) {
+  exitCart = exitCart.filter(r=>r.rowId!==rowId);
+  renderExit();
+}
+
+function clearExitCart() {
+  if(exitCart.length===0) return;
+  if(!confirm('¿Limpiar toda la lista de salida?')) return;
+  exitCart = [];
+  renderExit();
+}
+
+async function submitExitCart() {
+  if(exitCart.length===0) { toast('La lista está vacía','error'); return; }
+  const supplier    = (document.getElementById('x-supplier')?.value||'').trim();
+  const responsible = (document.getElementById('x-responsible')?.value||'').trim();
+  const date        = document.getElementById('x-date')?.value||today();
+  const reason      = document.getElementById('x-reason')?.value||'Caducado';
+  const notes       = document.getElementById('x-notes')?.value||'';
+  if(!supplier)    { toast('Ingresa el nombre del proveedor','error'); return; }
+  if(!responsible) { toast('Ingresa el nombre del responsable','error'); return; }
+
+  const btn = document.getElementById('x-submit-btn');
+  btn.disabled = true;
+  btn.innerHTML = `<svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg> Enviando…`;
+
+  const newExits = exitCart.map(r => ({
+    id: uid(), productId: r.productId, quantity: r.qty, price: r.price,
+    date, reason, supplier, responsible, notes
+  }));
+  state.exits.push(...newExits);
+  save();
+  renderSummary();
+
+  const ok = await sendToSheets({
+    type: 'salida',
+    fecha: date, motivo: reason, proveedor: supplier, responsable: responsible, notas: notes,
+    email: EMAIL,
+    items: exitCart.map(r=>({ codigo:r.productCode, producto:r.productName, cantidad:r.qty, precio:r.price, total:r.qty*r.price })),
+    total_general: exitCart.reduce((s,r)=>s+r.qty*r.price,0)
+  });
+
+  toast(ok
+    ? `✓ ${exitCart.length} producto(s) registrados y enviados a Sheets`
+    : `${exitCart.length} producto(s) guardados (sin conexión a Sheets)`,
+    ok ? 'success' : 'warning');
+
+  exitCart = [];
+  pickerSelected['exit'] = null;
+  renderExit();
+}
+
+// ── PRODUCTS PANEL ─────────────────────────────────────────────
+let prodSearch = '';
+function renderProducts() {
+  const filtered = state.products.filter(p=>{
+    if(!prodSearch) return true;
+    const q=prodSearch.toLowerCase();
+    return p.code.toLowerCase().includes(q)||p.name.toLowerCase().includes(q);
+  });
+  const getStock = pid => {
+    const inQ  = state.entries.filter(e=>e.productId===pid).reduce((s,e)=>s+e.quantity,0);
+    const outQ = state.exits.filter(e=>e.productId===pid).reduce((s,e)=>s+e.quantity,0);
+    return inQ-outQ;
+  };
+  document.getElementById('panel-products').innerHTML = `
+    <div class="history-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <div class="form-title neutral-title" style="margin-bottom:0">
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m16.5 9.4-9-5.19"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.27 6.96 12 12.01l8.73-5.05M12 22.08V12"/></svg>
+          Catálogo de Productos (${state.products.length})
+        </div>
+      </div>
+      <div class="search-box" style="margin-bottom:16px">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input class="search-input" value="${esc(prodSearch)}" placeholder="Buscar en catálogo..." oninput="prodSearch=this.value;renderProducts()"/>
+      </div>
+      ${filtered.length===0
+        ? `<div class="empty-state"><p>No hay productos</p></div>`
+        : `<div class="table-scroll"><table>
+          <thead><tr><th>Código</th><th>Nombre</th><th>Costo</th><th>Stock</th><th></th></tr></thead>
+          <tbody>${filtered.map(p=>{
+            const stock=getStock(p.id);
+            const cls=stock>0?'badge-stock-pos':stock<0?'badge-stock-neg':'badge-stock-zero';
+            return `<tr>
+              <td class="mono">${esc(p.code)}</td>
+              <td style="font-weight:600">${esc(p.name)}</td>
+              <td>${fmt$(p.cost)}</td>
+              <td><span class="badge ${cls}">${stock}</span></td>
+              <td><button class="del-btn" onclick="deleteProduct('${p.id}')">
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z"/></svg>
+              </button></td>
+            </tr>`;
+          }).join('')}</tbody>
+        </table></div>`}
+    </div>`;
+}
+function deleteProduct(id) {
+  if(!confirm('¿Eliminar este producto?')) return;
+  state.products = state.products.filter(p=>p.id!==id);
+  save(); renderSummary(); renderProducts();
+  toast('Producto eliminado','warning');
+}
+
+// ── HISTORY PANEL ──────────────────────────────────────────────
+let histFilter='all', histSearch='';
+function renderHistory() {
+  const getName = pid => state.products.find(p=>p.id===pid)?.name||'—';
+  const getCode = pid => state.products.find(p=>p.id===pid)?.code||'—';
+  let records = [
+    ...state.entries.map(e=>({...e,type:'entry'})),
+    ...state.exits.map(e=>({...e,type:'exit'}))
+  ].sort((a,b)=>b.date.localeCompare(a.date)||b.id.localeCompare(a.id));
+  if(histFilter!=='all') records=records.filter(r=>r.type===histFilter);
+  if(histSearch){
+    const q=histSearch.toLowerCase();
+    records=records.filter(r=>getName(r.productId).toLowerCase().includes(q)||getCode(r.productId).toLowerCase().includes(q)||(r.supplier||'').toLowerCase().includes(q)||(r.responsible||'').toLowerCase().includes(q));
+  }
+  document.getElementById('panel-history').innerHTML = `
+    <div class="history-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div class="form-title neutral-title" style="margin-bottom:0">
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          Historial de Movimientos
+        </div>
+      </div>
+      <div class="filter-row">
+        <button class="filter-btn${histFilter==='all'?' active':''}" onclick="histFilter='all';renderHistory()">Todos</button>
+        <button class="filter-btn${histFilter==='entry'?' active':''}" onclick="histFilter='entry';renderHistory()">Ingresos</button>
+        <button class="filter-btn${histFilter==='exit'?' active red-f':''}" onclick="histFilter='exit';renderHistory()">Salidas</button>
+        <div class="search-box" style="flex:1;min-width:180px">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input class="search-input" value="${esc(histSearch)}" placeholder="Filtrar por producto, proveedor, responsable..." oninput="histSearch=this.value;renderHistory()"/>
+        </div>
+      </div>
+      ${records.length===0
+        ? `<div class="empty-state"><p>No hay movimientos registrados</p></div>`
+        : `<div class="table-scroll"><table>
+          <thead><tr>
+            <th>Fecha</th><th>Tipo</th><th>Código</th><th>Producto</th>
+            <th>Cant.</th><th>Precio</th><th>Total</th>
+            <th>Proveedor</th><th>Responsable</th><th>Detalle</th><th></th>
+          </tr></thead>
+          <tbody>${records.map(r=>`<tr>
+            <td>${fmtDate(r.date)}</td>
+            <td><span class="badge ${r.type==='entry'?'badge-in':'badge-out'}">${r.type==='entry'?'Ingreso':'Salida'}</span></td>
+            <td class="mono">${esc(getCode(r.productId))}</td>
+            <td style="font-weight:600">${esc(getName(r.productId))}</td>
+            <td style="font-weight:700">${r.quantity}</td>
+            <td>${r.price?fmt$(r.price):'—'}</td>
+            <td style="font-weight:700">${r.price&&r.quantity?fmt$(r.price*r.quantity):'—'}</td>
+            <td style="font-size:13px">${esc(r.supplier||'—')}</td>
+            <td style="font-size:13px">${esc(r.responsible||'—')}</td>
+            <td style="color:#94a3b8;font-size:13px">${esc(r.notes||r.reason||'—')}</td>
+            <td><button class="del-btn" onclick="deleteRecord('${r.id}','${r.type}')">
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z"/></svg>
+            </button></td>
+          </tr>`).join('')}</tbody>
+        </table></div>`}
+    </div>`;
+}
+function deleteRecord(id, type) {
+  if(type==='entry') state.entries=state.entries.filter(e=>e.id!==id);
+  else state.exits=state.exits.filter(e=>e.id!==id);
+  save(); renderSummary(); renderHistory();
+  toast('Registro eliminado','warning');
+}
+
+// ── SUMMARY ────────────────────────────────────────────────────
+function renderSummary() {
+  const totalIn  = state.entries.reduce((s,e)=>s+e.quantity,0);
+  const totalOut = state.exits.reduce((s,e)=>s+e.quantity,0);
+  const costIn   = state.entries.reduce((s,e)=>s+(e.price||0)*e.quantity,0);
+  const costOut  = state.exits.reduce((s,e)=>s+(e.price||0)*e.quantity,0);
+  const cards = [
+    {label:'Productos',value:state.products.length,color:'#6366f1'},
+    {label:'Ingresos',value:totalIn,color:'#16a34a'},
+    {label:'Comprado ($)',value:fmt$(costIn),color:'#0891b2'},
+    {label:'Salidas',value:totalOut,color:'#dc2626'},
+    {label:'Pérdida ($)',value:fmt$(costOut),color:'#d97706'},
+  ];
+  document.getElementById('summary-grid').innerHTML = cards.map(c=>`
+    <div class="summary-card" style="border-top:3px solid ${c.color}">
+      <div class="summary-label">${c.label}</div>
+      <div class="summary-value" style="color:${c.color}">${c.value}</div>
+    </div>`).join('');
+}
+
+// ── TABS ───────────────────────────────────────────────────────
+function switchTab(t) {
+  ['entry','exit','products','history'].forEach(k=>{
+    document.getElementById('panel-'+k).classList.toggle('hidden',k!==t);
+    const btn=document.getElementById('tab-'+k);
+    btn.classList.remove('active','green','red');
+    if(k===t){ btn.classList.add('active'); if(k==='entry') btn.classList.add('green'); if(k==='exit') btn.classList.add('red'); }
+  });
+  currentTab=t;
+  renderPanel(t);
+}
+function renderPanel(t) {
+  if(t==='entry') renderEntry();
+  else if(t==='exit') renderExit();
+  else if(t==='products') renderProducts();
+  else renderHistory();
+}
+
+// ── MODAL ──────────────────────────────────────────────────────
+function openModal(){ document.getElementById('modal-overlay').classList.remove('hidden'); }
+function closeModal(){ document.getElementById('modal-overlay').classList.add('hidden'); }
+function saveModalProduct(){
+  const code=(document.getElementById('m-code').value||'').trim();
+  const name=(document.getElementById('m-name').value||'').trim();
+  const cost=parseFloat(document.getElementById('m-cost').value||'0');
+  if(!code||!name){ toast('Código y nombre requeridos','error'); return; }
+  state.products.push({id:uid(),code,name,cost:isNaN(cost)?0:cost});
+  save(); renderSummary();
+  toast(`Producto "${name}" añadido`,'success');
+  closeModal();
+  document.getElementById('m-code').value='';
+  document.getElementById('m-name').value='';
+  document.getElementById('m-cost').value='';
+  if(currentTab==='products') renderProducts();
+}
+
+// ── TOAST ──────────────────────────────────────────────────────
+let toastTimer;
+function toast(msg,type='success'){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.className=`toast ${type}`; el.classList.remove('hidden');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>el.classList.add('hidden'),3500);
+}
+
+// ── PRODUCTS DATA ──────────────────────────────────────────────
+const FRUVER_PRODUCTS = [
+  {id:'19d2aac3388xh0wg',code:'0019585',name:'ACEITUNA ENTERA X LB  ALFRESCO',cost:2.77},
+  {id:'19d2aac3388j43w8',code:'0023459',name:'ACEITUNA NEGRA DESHUESADA X L',cost:3.49},
+  {id:'19d2aac3388b89fr',code:'A1125',name:'ACELGA',cost:0.12},
+  {id:'19d2aac33884rpbw',code:'A1145',name:'ACHOCCHA 6 X 1.00',cost:0.1},
+  {id:'19d2aac3388eu4ea',code:'A1160',name:'ACHOTILLO 15 X 1',cost:0.05},
+  {id:'19d2aac3388zp0b7',code:'7868000737417',name:'AGRICOLA ARENAS ESPARRAGO DE 250 GR.',cost:0.94},
+  {id:'19d2aac3388k7zq9',code:'7868000737424',name:'AGRICOLA ARENAS UVILLA    275G',cost:0.93},
+  {id:'19d2aac3388sysy6',code:'0018273',name:'AGRICOLA EL COLMENAR FRAMBRUESA',cost:1.9},
+  {id:'19d2aac33888rg9r',code:'7868000738711',name:'AGRICOLA LECHUGA CRIOLLA',cost:0.46},
+  {id:'19d2aac3388tat67',code:'A1121',name:'AGUACATE GRANDE',cost:0.71},
+  {id:'19d2aac3388prgbc',code:'A1122',name:'AGUACATE SERRANO',cost:0.38},
+  {id:'19d2aac3388znyxb',code:'A1159',name:'AJI ESCABECHI',cost:0.57},
+  {id:'19d2aac33885zzph',code:'0024200',name:'AJI JALAPEÑO EN PLATO',cost:1.0},
+  {id:'19d2aac3388cr5r3',code:'A1129',name:'AJI ROKOTO',cost:2.0},
+  {id:'19d2aac3388wxwv5',code:'A1128',name:'AJO CASCARA',cost:0.95},
+  {id:'19d2aac3388ay503',code:'A1127',name:'AJO PELADO X LBR',cost:1.4},
+  {id:'19d2aac3388v03p2',code:'7862115530017',name:'ALBAHACA FINCA PRISCILA 70G',cost:0.5},
+  {id:'19d2aac3388wcp5x',code:'7862134110016',name:'ALBAHACA VIVER 70 GR',cost:0.63},
+  {id:'19d2aac3388tpwe9',code:'A1132',name:'ALCACHOFA',cost:0.79},
+  {id:'19d2aac33885cjo6',code:'2622220020675',name:'ALFRESCO CEREZAS MARRASQUINO X LB',cost:3.99},
+  {id:'19d2aac3388hes23',code:'7868001157528',name:'ALMENDR EN TARRINA 70 GRA',cost:1.0},
+  {id:'19d2aac338866u1x',code:'786100025212',name:'ANTONELLA ROMANA LECHUGA',cost:0.41},
+  {id:'19d2aac338866hx9',code:'A1126',name:'APIO',cost:0.32},
+  {id:'19d2aac3388yhy4g',code:'7861000145879',name:'APIO EN TALLO LA HUERTA',cost:0.71},
+  {id:'19d2aac3388o5ox5',code:'7868001126906',name:'ARANDANO AZUL STANDARP 125 MG',cost:1.55},
+  {id:'19d2aac3388855cb',code:'0012797',name:'ARANDANO DESIDRATADO X LBR',cost:67.83},
+  {id:'19d2aac3388xvtw2',code:'8437006505246',name:'ARANDANO IDEL BLUE 125 G',cost:0.92},
+  {id:'19d2aac3388bbefh',code:'0025183',name:'ARANDANO ORGANICO AZUL',cost:1.25},
+  {id:'19d2aac3388y0d39',code:'7868000873269',name:'ARANDANO PITUFOS 65 GR',cost:0.75},
+  {id:'19d2aac3388xt3g6',code:'7861223810486',name:'ARANDANO VASITO JUMBO',cost:2.68},
+  {id:'19d2aac338807oo4',code:'7861223810479',name:'ARANDANO VASO',cost:1.85},
+  {id:'19d2aac33887z0k3',code:'7861223802542',name:'ARANDANOS FRESCOS SUPERMAXI 250G',cost:2.92},
+  {id:'19d2aac3388xzayo',code:'B1120',name:'BABACO',cost:0.67},
+  {id:'19d2aac33883kem0',code:'033844001056',name:'BADIA CEBOLLA PICADA',cost:4.24},
+  {id:'19d2aac33886r193',code:'7861000271974',name:'BAYARDOS DULCE DE HIGOS 500 G',cost:2.21},
+  {id:'19d2aac3388cpvgi',code:'B1122',name:'BERENJENA',cost:0.5},
+  {id:'19d2aac3388i0aqm',code:'B1123',name:'BOROJO',cost:1.0},
+  {id:'19d2aac3388cltvk',code:'B1121',name:'BROCOLI',cost:0.5},
+  {id:'19d2aac3388l29xc',code:'C1127',name:'CAMOTE X LB',cost:0.28},
+  {id:'19d2aac3388uid0b',code:'0022328',name:'CANASTA NAVIDEÑA PEQ',cost:0.0},
+  {id:'19d2aac338800ojz',code:'C1123',name:'CEBOLLA BLANCA',cost:0.27},
+  {id:'19d2aac3388aldmq',code:'C1121',name:'CEBOLLA COLORADA X L',cost:0.38},
+  {id:'19d2aac33885qqyy',code:'C1122',name:'CEBOLLA PERLA X LB',cost:0.24},
+  {id:'19d2aac3388rca0k',code:'7862123410820',name:'CEBOLLA PUERRO RC',cost:0.39},
+  {id:'19d2aac3388qhbhn',code:'0007477',name:'CEBOLLIN',cost:0.44},
+  {id:'19d2aac338848384',code:'0025425',name:'CEDRON FRESCO',cost:0.1},
+  {id:'19d2aac33887c1ru',code:'002307',name:'CEREZA X LB',cost:1.75},
+  {id:'19d2aac33881co6b',code:'7861042567332',name:'CHAMP PORTOBELLO SOMBRILLA 230 G',cost:2.81},
+  {id:'19d2aac3388pzxdk',code:'7861003530092',name:'CHAMPIÑON FRESCO 100G',cost:0.76},
+  {id:'19d2aac3388mtzwz',code:'7861003530139',name:'CHAMPIÑONES ENTEROS',cost:1.49},
+  {id:'19d2aac3388d3sub',code:'7862115180229',name:'CHAMPIÑONES LAMINADOS CEPA 200G',cost:1.0},
+  {id:'19d2aac3388v1cuq',code:'7868000742404',name:'CHERRY DALYS',cost:1.05},
+  {id:'19d2aac338810lln',code:'C1120',name:'CHIRIMOYA X LB',cost:1.11},
+  {id:'19d2aac3388xiluw',code:'0024980',name:'CHOCLO COCINADO X LB',cost:1.0},
+  {id:'19d2aac3388lvlg3',code:'C1132',name:'CHOCLO DESGRANADO',cost:1.0},
+  {id:'19d2aac3388abijs',code:'C1130',name:'CHOCLO ENTERO SERRANO',cost:0.39},
+  {id:'19d2aac3388smtpt',code:'0016911',name:'CIDRA X UNIDAD',cost:0.16},
+  {id:'19d2aac3388hc94h',code:'0015820',name:'CIRUELA PASA X 1/2 LB',cost:0.92},
+  {id:'19d2aac3388dydtb',code:'0013024',name:'CIRUELA PASA XLIBRA',cost:1.91},
+  {id:'19d2aac3388yifq4',code:'C1136',name:'CIRUELAS UNIDADES 20 X 1.00',cost:0.01},
+  {id:'19d2aac3388b8p1m',code:'7862140890018',name:'COCO DAY PELADO MEDIANO',cost:1.99},
+  {id:'19d2aac338860wbu',code:'7861000164528',name:'COCO FREEZE EMPACADO',cost:1.23},
+  {id:'19d2aac3388nqjn0',code:'C1124',name:'COCO SECO',cost:1.25},
+  {id:'19d2aac3388kehkf',code:'0026274',name:'COL DE BRUSELAS EN BANDEJA',cost:1.0},
+  {id:'19d2aac3388vpc4u',code:'C1129',name:'COL MORADA REPOLLO',cost:0.88},
+  {id:'19d2aac3388ujute',code:'C1128',name:'COL REPOLLO',cost:1.0},
+  {id:'19d2aac3388rxmfw',code:'C1126',name:'COLIFLOR',cost:0.6},
+  {id:'19d2aac3388g4q5l',code:'7861000170963',name:'COLIFLOR EL VERGEL',cost:0.82},
+  {id:'19d2aac33887d3vq',code:'7861223802559',name:'COLIFLOR HS',cost:0.39},
+  {id:'19d2aac33883u57f',code:'7861223803419',name:'COOLTIVA ARANDANO JUMBO AT',cost:2.7},
+  {id:'19d2aac3388pyjz8',code:'7861042581208',name:'COOLTIVA ARANDANO VASITO 125 G',cost:1.5},
+  {id:'19d2aac3388qpbbq',code:'7861223803402',name:'COOLTIVA ARANDANO VASITO AT',cost:1.5},
+  {id:'19d2aac3388b5amy',code:'7861223800364',name:'COOLTIVA FRAMBUESA EG',cost:1.19},
+  {id:'19d2aac3388wt4c0',code:'7861223800357',name:'COOLTIVA FRAMBUESA PA',cost:1.19},
+  {id:'19d2aac3388kf0p8',code:'7861223801354',name:'COOLTIVA UVILLA PA',cost:0.55},
+  {id:'19d2aac3388rknk3',code:'7861042593997',name:'COOLTIVA UVILLA VASITO',cost:0.55},
+  {id:'19d2aac33888wo7z',code:'7861042500933',name:'COOLTIVA UVILLA VASO',cost:0.57},
+  {id:'19d2aac3388er4fn',code:'7861000248310',name:'CORAZONES DE APLMITO CARLO 371 GR',cost:0.0},
+  {id:'19d2aac3388gt9uz',code:'C1131',name:'CULANTRO / YERBITA',cost:1.0},
+  {id:'19d2aac33889y9m2',code:'0024892',name:'CURCUMA FRESCA X LB',cost:1.0},
+  {id:'19d2aac3388wpb5y',code:'7868000842371',name:'DAMISAN LECHUGA CRESPA HIDROPONICA',cost:0.5},
+  {id:'19d2aac338831edi',code:'786800087920',name:'DE MI SUEGRA PICO DE GALLO',cost:1.88},
+  {id:'19d2aac3388torlg',code:'797701001442',name:'DEDITOS DE YUCA FAC 400G',cost:3.1},
+  {id:'19d2aac3388g7cxa',code:'764451779464',name:'DELYFRUT ALMENDRA TARRINA  90 GR',cost:1.15},
+  {id:'19d2aac33881sar5',code:'0024391',name:'DELYFRUT ARANDANOS TARRINA',cost:1.0},
+  {id:'19d2aac3388eqvee',code:'764451779488',name:'DELYFRUT NUEZ TARRINA 60 GR',cost:1.0},
+  {id:'19d2aac3388arvmq',code:'7868000932300',name:'DON QUINO ZAPALLO PICADO',cost:1.44},
+  {id:'19d2aac3388kr3nq',code:'D1156',name:'DURAZNO',cost:0.18},
+  {id:'19d2aac3388k9fin',code:'D16600',name:'DURAZNO ABRIDOR',cost:0.27},
+  {id:'19d2aac3388q7drn',code:'7868000989717',name:'DURAZNO EN MALLA PEQUEÑO',cost:0.85},
+  {id:'19d2aac3388ojhxh',code:'7862123410158',name:'ECUA HORT MAIZ DULCE',cost:1.98},
+  {id:'19d2aac33885oq2m',code:'7862123410264',name:'ECUAHORT ENELDO 100 G',cost:0.72},
+  {id:'19d2aac3388n5lis',code:'7862123410332',name:'ECUAHORT LECHUGA CRESPA',cost:0.42},
+  {id:'19d2aac3388sb3v1',code:'7862123410578',name:'ECUAHORT APIO HIDROPONICO',cost:0.91},
+  {id:'19d2aac3388pv6xy',code:'7862123410585',name:'ECUAHORT NABO CHINO HIDROPONICO',cost:0.69},
+  {id:'19d2aac3388ihp7w',code:'7862118990030',name:'ECUAORGANIC LECHUGA ROJA',cost:1.28},
+  {id:'19d2aac33881cjq3',code:'7868001003627',name:'ECUVEGETAL GRANADA',cost:1.32},
+  {id:'19d2aac3388w0g6p',code:'E1121',name:'ENSALADAS DE FRUTAS',cost:1.5},
+  {id:'19d2aac3388fxow5',code:'7862124620594',name:'ES VIDA ARSAICO UVILLA 200 GR',cost:1.2},
+  {id:'19d2aac3388k6ya3',code:'7862124620457',name:'ES VIDA RUCULA ORGANICA',cost:1.43},
+  {id:'19d2aac338850n3s',code:'7861042594291',name:'ESPARRAGO MORADO',cost:0.0},
+  {id:'19d2aac3388gbzr5',code:'7868000837810',name:'ESPARRAGOS PROAGRO TORRES 250',cost:0.95},
+  {id:'19d2aac3388rhw8f',code:'E1120',name:'ESPINACA',cost:0.46},
+  {id:'19d2aac3388gdr5y',code:'M1122',name:'ESTRACTO PURO DE MARACUYA',cost:1.0},
+  {id:'19d2aac33886libk',code:'7861042594925',name:'ET LO NABO CHINO',cost:0.39},
+  {id:'19d2aac338841kiu',code:'7861042513681',name:'FINCA PRISCILA ALBAHACA CAPUCHON',cost:0.5},
+  {id:'19d2aac3388u66eg',code:'7862107783735',name:'FLOR DE JAMAICA NATURES HEART',cost:1.41},
+  {id:'19d2aac3388x89ud',code:'7862107785876',name:'FLOR DE JAMICA',cost:0.59},
+  {id:'19d2aac338884v85',code:'7868000717709',name:'FRAMBUESA 125G',cost:1.98},
+  {id:'19d2aac33883iuwv',code:'7861223802092',name:'FRAMBUESA EN VASO90GR',cost:1.6},
+  {id:'19d2aac33883lkni',code:'7868000521221',name:'FRAMBUESA GUADAPRODUCTS',cost:1.82},
+  {id:'19d2aac3388rg6rd',code:'7861000250986',name:'FRAMBUESAS AGRICOLA EL COLMENAR',cost:2.24},
+  {id:'19d2aac3388f8no1',code:'7861000140973',name:'FRAMBUESAS OTOMS',cost:2.39},
+  {id:'19d2aac33889n31u',code:'7861042596868',name:'FRANBUESA CONGELADO 1 KG',cost:0.0},
+  {id:'19d2aac3388s85i1',code:'F1121',name:'FREJOL BLANCO',cost:0.8},
+  {id:'19d2aac3388v48gw',code:'FB1121',name:'FREJOL BLANCO RAYADO',cost:1.5},
+  {id:'19d2aac33886kq16',code:'0017382',name:'FREJOL BOLON BLANCO XLB',cost:1.5},
+  {id:'19d2aac3388gq5n7',code:'F11251',name:'FREJOL BOLON ROJO TIERNO XLB',cost:1.8},
+  {id:'19d2aac33886mpay',code:'F1124',name:'FREJOL CRIOLLO',cost:1.15},
+  {id:'19d2aac3388xzcpx',code:'0025811',name:'FREJOL CRIOLLO EN CASCARA',cost:1.0},
+  {id:'19d2aac3388xpg3x',code:'0014286',name:'FREJOL SECO BOCA NEGRA LB',cost:1.0},
+  {id:'19d2aac3388p9hfj',code:'7868000963151',name:'FRESH VEGGIES JUVAL TOMATE 200 G',cost:0.65},
+  {id:'19d2aac33883ynwz',code:'7862104260246',name:'FRESHKITA MARACUYA PULPA FRESCA',cost:2.18},
+  {id:'19d2aac33885b8os',code:'7862105710023',name:'FRUTASI MORA PULPA 250 G',cost:1.25},
+  {id:'19d2aac33888vjfu',code:'786210571005',name:'FRUTASI TOMATE DULCE PULPA 250 G',cost:0.83},
+  {id:'19d2aac3388s856x',code:'F1120',name:'FRUTILLA X LB',cost:1.37},
+  {id:'19d2aac33889b0ua',code:'7862114870152',name:'GERMINATU GERMINADO DE CEBOLLA',cost:3.35},
+  {id:'19d2aac3388p93xq',code:'G1120',name:'GRANADILLA',cost:0.22},
+  {id:'19d2aac3388gw41k',code:'7862103431265',name:'GREE/GAR AJI JALAPENO VERDE 150G',cost:0.71},
+  {id:'19d2aac3388kfuer',code:'7862103432699',name:'GREENGAR ZANAHORIA RALLADA 220 G',cost:0.99},
+  {id:'19d2aac3388ob82g',code:'7100000149976',name:'GREENLAB LECHUGA HIDROPONICA ROSA VERDE',cost:0.71},
+  {id:'19d2aac33880xs74',code:'0017063',name:'GROSELLA CHINA',cost:0.08},
+  {id:'19d2aac3388dgwfe',code:'7861223803242',name:'GROSELLAS SALADITAS 280 GR',cost:0.7},
+  {id:'19d2aac3388rvnt1',code:'0023337',name:'GUABA X UNID',cost:0.5},
+  {id:'19d2aac3388n5wwe',code:'0024562',name:'GUABAS',cost:1.5},
+  {id:'19d2aac33888zfe3',code:'G145',name:'GUANABANA XLB',cost:0.6},
+  {id:'19d2aac3388iixf7',code:'G1122',name:'GUAYABAS UND 5 X 1.00',cost:0.11},
+  {id:'19d2aac33887nf4c',code:'G8067',name:'GUINEO CEDA CRIOLLO',cost:0.05},
+  {id:'19d2aac3388nlru8',code:'G1124',name:'GUINEO MADURO',cost:0.06},
+  {id:'19d2aac33885zotv',code:'G1125',name:'GUINEO ORITO',cost:0.83},
+  {id:'19d2aac3388sp601',code:'G1123',name:'GUINEO VERDE 12 X 1.00',cost:0.04},
+  {id:'19d2aac3388y0woj',code:'7861034910207',name:'GUIPI CHAMPINON REBANADO BANDEJA 400 G',cost:3.55},
+  {id:'19d2aac3388kkrwz',code:'7861034910436',name:'GUIPI CHAMPIÑONES REB 125 G',cost:1.18},
+  {id:'19d2aac338811vz7',code:'7861034910221',name:'GUIPI CHAMPIÑONES REBANADO 200 G',cost:1.76},
+  {id:'19d2aac33889g0bd',code:'7861034910153',name:'GUIPI CRIMINI ENTERO',cost:2.34},
+  {id:'19d2aac3388z4z7m',code:'786103491037',name:'GUIPI CRIMINI REBANADO',cost:1.41},
+  {id:'19d2aac3388zrgkx',code:'0018151',name:'H. HIERBAS COLADA MORADA.',cost:0.79},
+  {id:'19d2aac33881blda',code:'786104256620',name:'H. PEREJIL',cost:0.41},
+  {id:'19d2aac3388lry6n',code:'0017408',name:'HABA MANABA',cost:1.0},
+  {id:'19d2aac3388rfv9g',code:'0017407',name:'HABA REPELADA X LB.',cost:1.5},
+  {id:'19d2aac33883jy5a',code:'0002321',name:'HABA SECA X LB',cost:1.0},
+  {id:'19d2aac33885tw6q',code:'H1121',name:'HABA X LBR',cost:1.14},
+  {id:'19d2aac3388l17kv',code:'7868001101729',name:'HDC LECHUGA CRESPA',cost:0.45},
+  {id:'19d2aac3388x6psk',code:'7861042566137',name:'HIERBA BUENA 100 G',cost:0.37},
+  {id:'19d2aac33885rtnz',code:'0024563',name:'HIERBABUENA FRESCA',cost:0.0},
+  {id:'19d2aac3388i2odq',code:'7862103430169',name:'HIERBABUENA GREEN GARDEN',cost:0.65},
+  {id:'19d2aac3388sgdls',code:'0017567',name:'HIERBALUISA FRESCA',cost:0.24},
+  {id:'19d2aac3388il29v',code:'H16638',name:'HIGOS',cost:0.03},
+  {id:'19d2aac3388zabnh',code:'7862101630578',name:'HOJAS BABY DE REMOLACHA',cost:0.0},
+  {id:'19d2aac3388660qi',code:'7861000216388',name:'HONGOS SECOS DE PINO 50 GR',cost:2.27},
+  {id:'19d2aac3388c458f',code:'7861182301537',name:'HONGOS SECOS SALINERITO 50 GR',cost:1.63},
+  {id:'19d2aac3388smvip',code:'7862101901166',name:'HORTANA ALBAHACA',cost:0.75},
+  {id:'19d2aac3388tj2oq',code:'7862101901876',name:'HORTANA BABY LECHUGAS SALANOVA',cost:0.79},
+  {id:'19d2aac3388j48f9',code:'7862101901180',name:'HORTANA BABY MIX 230 G',cost:2.17},
+  {id:'19d2aac3388m3mzw',code:'786210190157',name:'HORTANA COL MORADA',cost:0.66},
+  {id:'19d2aac3388pzcw1',code:'7862101900800',name:'HORTANA COL SLAW ENSALADA',cost:1.82},
+  {id:'19d2aac3388h4lss',code:'7862101904075',name:'HORTANA COLIFLOR VERDE 400 G',cost:0.79},
+  {id:'19d2aac3388u52le',code:'7862101901456',name:'HORTANA KALE EMPACADO',cost:1.39},
+  {id:'19d2aac3388quhcw',code:'7862101901913',name:'HORTANA KALE LISTO 100 G',cost:2.74},
+  {id:'19d2aac3388hbcf4',code:'7861000111768',name:'HORTANA LECGUGA CRIOLLA',cost:0.73},
+  {id:'19d2aac338899tky',code:'7862101900060',name:'HORTANA LECHUGA CRESPA',cost:0.97},
+  {id:'19d2aac3388zafc3',code:'7862101901302',name:'HORTANA LECHUGA ROMANA',cost:1.07},
+  {id:'19d2aac3388kw9jn',code:'7862101900039',name:'HORTANA PEREJIL CRESPO 100G',cost:0.61},
+  {id:'19d2aac3388369sc',code:'7862101902187',name:'HORTANA RADICHO 200 G',cost:1.03},
+  {id:'19d2aac33888ow7z',code:'7862101900725',name:'HORTANA RUCULA 100G',cost:1.3},
+  {id:'19d2aac3388z2t4p',code:'7862101900213',name:'HORTANA TOMATE CHERRY 300 G',cost:1.0},
+  {id:'19d2aac3388t6dzz',code:'7862101903719',name:'HORTANA TOMATE CHERRY AMARILLO 200 G',cost:1.59},
+  {id:'19d2aac3388ody5v',code:'7862101901142',name:'HORTANA ZANAHORIA RALLADA 250G',cost:0.98},
+  {id:'19d2aac3388jivt9',code:'7861000150927',name:'HORTIFRESH COLIFLOR',cost:0.78},
+  {id:'19d2aac33887pvda',code:'7861000179898',name:'HORTIFRESH COLIFLOR PLATO 250G',cost:0.6},
+  {id:'19d2aac3388vi9ep',code:'7861000168953',name:'HORTIFRESH LECHUGA CRIOLLA',cost:0.6},
+  {id:'19d2aac3388s8sc3',code:'7862115860022',name:'HORTIFRESH PEPINO GOURMET',cost:0.98},
+  {id:'19d2aac3388yjznj',code:'7862113110136',name:'HORTILISTO SAMBO PICADO 600 G',cost:1.57},
+  {id:'19d2aac3388qxakz',code:'7861000225724',name:'HORTILISTO ZAPALLO PICADO 700 G',cost:1.18},
+  {id:'19d2aac33880tboq',code:'7868001235103',name:'ILARU ARANDANO DE ALTUR 125 MG',cost:1.59},
+  {id:'19d2aac3388jb8c9',code:'7861022900913',name:'INDAVES BLANC EXTRA GRAND OMEGA3',cost:3.34},
+  {id:'19d2aac3388qsfoh',code:'0015569',name:'ISHPINGO',cost:1.25},
+  {id:'19d2aac3388wid7n',code:'0016105',name:'JAMAICA FRESCA X LB',cost:1.2},
+  {id:'19d2aac3388m7kon',code:'0016544',name:'JAMAICA SECA 1/4 LB',cost:1.0},
+  {id:'19d2aac33881ktcz',code:'0012459',name:'JAMAICA SECA X 1.75',cost:1.3},
+  {id:'19d2aac3388gpo4c',code:'0000537',name:'JAMAICA SECA XLB',cost:2.27},
+  {id:'19d2aac33882oybj',code:'7861042578963',name:'JC LO PAPA CECILIA',cost:0.79},
+  {id:'19d2aac3388v4wvf',code:'J11258',name:'JENGIBRE  XLIBRAS',cost:1.0},
+  {id:'19d2aac3388fmlvc',code:'7861000267380',name:'JUVAL TOMATE CHERRY ROJO PERITA',cost:1.53},
+  {id:'19d2aac33889bou8',code:'0012379',name:'KAKI',cost:0.22},
+  {id:'19d2aac3388f5l89',code:'7861003530160',name:'KENNET CHAMPINON FRESCO BANDEJA ENTEROS 400 G',cost:1.49},
+  {id:'19d2aac338832qs5',code:'7861003530177',name:'KENNET CHAMPINON LAMINADOS 400 G',cost:2.88},
+  {id:'19d2aac338877r00',code:'7861003530122',name:'KENNET CHAMPIÑON REBANADO 200G',cost:1.49},
+  {id:'19d2aac3388qnype',code:'7861003530085',name:'KENNET CRIMINI CHAMPINONES ENTERO',cost:0.0},
+  {id:'19d2aac3388rvoz1',code:'786100353002',name:'KENNET PORTOBELLO SOMBRILLA ENTERO',cost:2.33},
+  {id:'19d2aac3388n5974',code:'K1120',name:'KIWI',cost:0.2},
+  {id:'19d2aac3388gunot',code:'7861223805581',name:'KIWI L O FNDA X 4',cost:0.79},
+  {id:'19d2aac3388dri40',code:'7862103903878',name:'LA CUENCANA CHOCHO LIMON',cost:0.91},
+  {id:'19d2aac3388j2kuz',code:'7862103904585',name:'LA CUENCANA FREJOL ROJO 400 G',cost:1.86},
+  {id:'19d2aac3388iwbjl',code:'7861000215770',name:'LA PARCELA LECHUGA CRESPA',cost:0.64},
+  {id:'19d2aac3388afrde',code:'786102980542',name:'LA VALERIA MIX CEBOLLAS AL VACIO',cost:1.51},
+  {id:'19d2aac3388dg9rx',code:'7861000140249',name:'LA VERDE SUPER CHOCHO 360 G',cost:0.0},
+  {id:'19d2aac3388uyjsg',code:'7862127210082',name:'LA ZAMBICENA HIERBA BUENA',cost:0.31},
+  {id:'19d2aac3388s78ap',code:'7862101900053',name:'LECHUGA CESAR ROMANA',cost:0.78},
+  {id:'19d2aac3388gzekm',code:'7861000141130',name:'LECHUGA CRESPA LA HUERTA',cost:0.54},
+  {id:'19d2aac3388djfw0',code:'7861223804591',name:'LECHUGA CRESPA LA ORIGINAL',cost:0.4},
+  {id:'19d2aac3388qrn1h',code:'7862118990016',name:'LECHUGA CRESPA ORGANICA ECUAORGANIC',cost:1.02},
+  {id:'19d2aac3388r1mud',code:'7861042531012',name:'LECHUGA CRESPA SUPERMAXI',cost:0.49},
+  {id:'19d2aac33885h3qm',code:'7868001101712',name:'LECHUGA CRIOLLA HERENCIA DE CAMPO 300-600G',cost:0.51},
+  {id:'19d2aac3388uen1b',code:'7861000252102',name:'LECHUGA ORGANICA  ANTONELLA',cost:0.42},
+  {id:'19d2aac33888286i',code:'L1121',name:'LECHUGA REDONDA ORG.',cost:0.62},
+  {id:'19d2aac33887juh2',code:'7861223829143',name:'LECHUGA ROJA SEMBRAO',cost:0.63},
+  {id:'19d2aac33886vtwa',code:'7862118990023',name:'LECHUGA ROMANA',cost:1.08},
+  {id:'19d2aac3388m2a4h',code:'L1125',name:'LIMAS',cost:0.1},
+  {id:'19d2aac3388872y2',code:'L1120',name:'LIMON GRANDE 20X 1 DOLAR',cost:0.03},
+  {id:'19d2aac33883ghqj',code:'7861021203350',name:'LINAZA 40G',cost:0.25},
+  {id:'19d2aac3388wcp9t',code:'7861042585121',name:'LO CHAMPIÑONES REBA 145G',cost:0.78},
+  {id:'19d2aac3388a48ud',code:'7861223801125',name:'LO CHERRY AMARILLO',cost:0.79},
+  {id:'19d2aac3388x5dlr',code:'7861042592853',name:'LO LIMON GRANDE EN MALLA',cost:0.79},
+  {id:'19d2aac3388tey31',code:'7861042593928',name:'LO NABO CHINO ECONOMICO',cost:0.55},
+  {id:'19d2aac3388wk0vo',code:'7861042582281',name:'LO TOMATE CHERRY',cost:0.79},
+  {id:'19d2aac33886lb70',code:'7861042581123',name:'LO TOMATE DULCE MALLA',cost:0.79},
+  {id:'19d2aac338853v6r',code:'7861042580478',name:'LO TOMATE RINON FDA',cost:0.79},
+  {id:'19d2aac3388i8dc8',code:'786104250146',name:'LO ZANAHORIA BABY',cost:0.95},
+  {id:'19d2aac3388dnd9y',code:'7861042576761',name:'LO.HUEVOS DE CODORNIZ',cost:1.47},
+  {id:'19d2aac3388togl9',code:'7861223822700',name:'LO.LECHUGA CRESPA JR',cost:0.4},
+  {id:'19d2aac33882etvp',code:'7861223807578',name:'LO.LECHUGA CRESPA URP',cost:0.4},
+  {id:'19d2aac3388kqnro',code:'786104258628',name:'LO.ZANAHORIA RALLADA DMS',cost:0.75},
+  {id:'19d2aac3388txc9o',code:'7861042576341',name:'LO.ZAPALLO PICADO',cost:0.95},
+  {id:'19d2aac3388las9k',code:'7862122481463',name:'LOS PAISAS GLASEADO DE MARACUYA 1.5 KG',cost:3.12},
+  {id:'19d2aac3388c1naa',code:'7862122481937',name:'LOS PAISAS MERMELADA DE FRUTILLA 1.5 KG',cost:3.42},
+  {id:'19d2aac338843lf3',code:'7862122481920',name:'LOS PAISAS MERMELADA DE MORA 1.5 KG',cost:3.95},
+  {id:'19d2aac3388oxtad',code:'7862113114899',name:'MAIZ AMARILLO TIERNO ORTILISTO',cost:2.6},
+  {id:'19d2aac3388jpb59',code:'797701001121',name:'MAIZ DULCE FIESTA FAC 500G',cost:2.08},
+  {id:'19d2aac3388p5y4n',code:'M24900',name:'MANDARINA SERRANA',cost:0.15},
+  {id:'19d2aac3388h94hh',code:'M11346',name:'MANGO EDWARE N° 18',cost:0.4},
+  {id:'19d2aac3388p9d5i',code:'M1158',name:'MANGO VERDE TOMY',cost:0.59},
+  {id:'19d2aac3388tjb6l',code:'M11545',name:'MANZANA PILEY 150',cost:0.22},
+  {id:'19d2aac3388i82nv',code:'M11424',name:'MANZANA ROJA 150',cost:0.29},
+  {id:'19d2aac338805qlx',code:'M1172',name:'MANZANA ROJA 88',cost:0.36},
+  {id:'19d2aac3388fq082',code:'M24372',name:'MANZANA ROYAL 100',cost:0.34},
+  {id:'19d2aac3388v7dgv',code:'0017224',name:'MANZANA ROYAL 113',cost:0.31},
+  {id:'19d2aac3388l4utx',code:'M1178',name:'MANZANA ROYAL 150',cost:0.18},
+  {id:'19d2aac33889e0mu',code:'M18735',name:'MANZANA ROYAL 198',cost:0.18},
+  {id:'19d2aac33886sud1',code:'M1179',name:'MANZANA ROYAL 88',cost:0.35},
+  {id:'19d2aac338848dyg',code:'M1124',name:'MANZANA VERDE 150',cost:0.23},
+  {id:'19d2aac3388jwjet',code:'M1126',name:'MANZANA WINTER 4X1.00',cost:0.24},
+  {id:'19d2aac3388anm4l',code:'M1137',name:'MANZANILLA HIERB',cost:0.17},
+  {id:'19d2aac338875dr8',code:'M1127',name:'MARACUYA  X UND',cost:0.22},
+  {id:'19d2aac3388b55ey',code:'7792750000937',name:'MARBELLA ANCHOAS AC',cost:5.13},
+  {id:'19d2aac3388t9pzw',code:'MELLOCOS',name:'MELLOCO X LB',cost:0.8},
+  {id:'19d2aac3388u2497',code:'000130',name:'MELON X LB',cost:0.36},
+  {id:'19d2aac3388xdhmt',code:'7862103430237',name:'MENTA GREEN GARDEN',cost:0.65},
+  {id:'19d2aac3388ie5as',code:'7868000318609',name:'MIKY COL DE BRUSELA',cost:1.38},
+  {id:'19d2aac33888pfph',code:'7861000278799',name:'MINI CARROTS 500 GR',cost:1.62},
+  {id:'19d2aac33882ugat',code:'0019699',name:'MIX DE GRANOS EN BANDEJA',cost:0.8},
+  {id:'19d2aac3388kwjhg',code:'7868000218213',name:'MONTEROS FREJOL ROJO 250 G',cost:1.05},
+  {id:'19d2aac3388f484v',code:'0018206',name:'MONTES PARA COLADA MORADA',cost:0.75},
+  {id:'19d2aac33880beum',code:'M1120',name:'MORA X LB',cost:1.43},
+  {id:'19d2aac3388tgdi6',code:'0018539',name:'MORINGA EN HOJA',cost:0.87},
+  {id:'19d2aac3388m4xx6',code:'M15892',name:'MORTIÑO XLB',cost:3.0},
+  {id:'19d2aac338887sdk',code:'7868000855807',name:'MUNDOLOMA MAIZ DULCE 950G',cost:1.99},
+  {id:'19d2aac3388johqk',code:'0020004',name:'NABO CHINO',cost:1.29},
+  {id:'19d2aac3388kbb0t',code:'7868000410235',name:'NABO CHINO CAMPECHANO',cost:0.56},
+  {id:'19d2aac33881zfsk',code:'7861042591634',name:'NABO CHINO FRESCO Y SANO LO',cost:0.69},
+  {id:'19d2aac3388yw1nt',code:'N1120',name:'NARANJA GRANDE UND',cost:0.09},
+  {id:'19d2aac3388m6tto',code:'N1129',name:'NARANJA INJERTA 80',cost:0.56},
+  {id:'19d2aac3388zrxqr',code:'N1122',name:'NARANJILLA 5 X 1 DOLAR',cost:0.12},
+  {id:'19d2aac3388v6cmg',code:'7862100740889',name:'NATURALIA REFRESCO DE COCO',cost:1.34},
+  {id:'19d2aac3388ga4j7',code:'N16469',name:'NECTARINO',cost:0.19},
+  {id:'19d2aac33886pqg8',code:'0024901',name:'OCA',cost:0.27},
+  {id:'19d2aac3388rcewz',code:'7868001213606',name:'ORBERRIES FRAMBUESA ROJA 125 GR',cost:1.44},
+  {id:'19d2aac3388fpd01',code:'786210163057',name:'ORG TERRA.S HOJA DE REMOLACHA BABY',cost:1.99},
+  {id:'19d2aac3388nmddd',code:'7861000177047',name:'PALMITO NATURAL',cost:0.0},
+  {id:'19d2aac33882e2qs',code:'P1125',name:'PAPA BOLONA X LB',cost:0.16},
+  {id:'19d2aac3388l8hqm',code:'P1136',name:'PAPA CHAUCHA X  LB',cost:0.5},
+  {id:'19d2aac3388wnd2a',code:'P1127',name:'PAPA CHINA X LB',cost:0.36},
+  {id:'19d2aac3388v9h96',code:'P1124',name:'PAPA CHOLA LAVADA X LB',cost:0.33},
+  {id:'19d2aac3388asfb9',code:'P15891',name:'PAPA CHOLA SUCIA X LB',cost:0.3},
+  {id:'19d2aac3388qw8dn',code:'P1126',name:'PAPA SEMI LAVADA X LB',cost:0.16},
+  {id:'19d2aac3388b6vlq',code:'P1169',name:'PAPAYA CAMILA GRANDE',cost:1.83},
+  {id:'19d2aac3388z8b7k',code:'P1120',name:'PAPAYA HAWAYANA',cost:0.53},
+  {id:'19d2aac33884kr8e',code:'0013397',name:'PASAS X LIBRAS',cost:1.27},
+  {id:'19d2aac33883npcw',code:'0026196',name:'PEPINILLOS EN PLATO',cost:1.0},
+  {id:'19d2aac33886du14',code:'P1137',name:'PEPINO DULCE X LB',cost:0.39},
+  {id:'19d2aac3388fpsce',code:'P1131',name:'PEPINOS',cost:0.18},
+  {id:'19d2aac3388126li',code:'P1142',name:'PERA CHINA',cost:0.58},
+  {id:'19d2aac3388ttqqo',code:'0018059',name:'PERA COSCIA',cost:0.14},
+  {id:'19d2aac3388v1lam',code:'P1122',name:'PERA VERDE 150',cost:0.2},
+  {id:'19d2aac3388yj6eg',code:'P1161',name:'PEREJIL',cost:0.24},
+  {id:'19d2aac3388ncb2s',code:'7862118990733',name:'PEREJIL CRESPO ORGANICO 120 GR',cost:0.81},
+  {id:'19d2aac33885w8kf',code:'P1135',name:'PICADILLO X LB',cost:0.75},
+  {id:'19d2aac3388gxc6j',code:'P1134',name:'PIMIENTO AMARILLO/ROJO X LB',cost:0.52},
+  {id:'19d2aac3388qzqii',code:'P1141',name:'PIMIENTO VERDE',cost:0.1},
+  {id:'19d2aac3388g2oxe',code:'P1129',name:'PIÑA  HAWUAYANA',cost:1.67},
+  {id:'19d2aac3388ly9ex',code:'P1130',name:'PIÑA BLANCA G',cost:1.31},
+  {id:'19d2aac3388hud9w',code:'P1148',name:'PIÑA EN RODAJAS',cost:0.3},
+  {id:'19d2aac3388tb4p3',code:'P1333',name:'PIÑA HAWUAYANA PEQ',cost:0.0},
+  {id:'19d2aac3388q71zt',code:'P1166',name:'PLATANO RACIMO MEDIANO',cost:10.0},
+  {id:'19d2aac3388rc0bv',code:'P1140',name:'PLATANO V / M X  UND.  6X 1',cost:0.14},
+  {id:'19d2aac3388p3wlo',code:'7868001007229',name:'PROAGBA BRAMBUESA 85 G',cost:1.18},
+  {id:'19d2aac3388kv7n9',code:'7868001007212',name:'PROAGBA FRAMBUESA',cost:1.32},
+  {id:'19d2aac3388m4cnz',code:'7868000837827',name:'PROAGROTORRES ATADO DE ESPARRAGO 250 G',cost:1.04},
+  {id:'19d2aac3388yjcie',code:'PF1121',name:'PULPA DE FRUTILLA 1.5 LB',cost:1.75},
+  {id:'19d2aac33880qsxb',code:'0015173',name:'PULPA DE GUANABANA',cost:1.54},
+  {id:'19d2aac3388ljfe6',code:'PM1121',name:'PULPA DE MARACUYA X LB',cost:2.85},
+  {id:'19d2aac33883iz7d',code:'R1122',name:'RABANO X LB',cost:0.24},
+  {id:'19d2aac3388qp6en',code:'R1123',name:'REINACLAUDIA AMARILLA',cost:0.08},
+  {id:'19d2aac3388433zy',code:'R1155',name:'REINACLAUDIA ROJA AMERICANA G.',cost:0.18},
+  {id:'19d2aac3388xqmz2',code:'R1121',name:'REMOLACHA X LB',cost:0.21},
+  {id:'19d2aac3388xcw6q',code:'7862133340728',name:'REMU JALAPEÑO 100 G',cost:0.48},
+  {id:'19d2aac338861tb2',code:'7861042585282',name:'SABILA PACK X3',cost:0.79},
+  {id:'19d2aac33881ldat',code:'0013519',name:'SACO DE MARACUYA',cost:7.0},
+  {id:'19d2aac3388ru8t8',code:'0025371',name:'SAL PRIETA GRAND',cost:2.25},
+  {id:'19d2aac3388mt6z1',code:'SAM1',name:'SAMBO ENTERO',cost:1.67},
+  {id:'19d2aac3388jt6pf',code:'SP2',name:'SAMBO X PEDAZO',cost:0.56},
+  {id:'19d2aac3388j6tur',code:'S1123',name:'SANDIA EN RODAJAS',cost:0.5},
+  {id:'19d2aac3388ncwzh',code:'S1120',name:'SANDIA GRANDE X UND',cost:2.35},
+  {id:'19d2aac3388ucxer',code:'SANGO',name:'SANGO X LIBRAS',cost:1.5},
+  {id:'19d2aac3388d76bm',code:'7861042592006',name:'SEMBRAO ALBAHACA',cost:0.62},
+  {id:'19d2aac3388rm8fb',code:'7861042592013',name:'SEMBRAO CEBOLLIN',cost:0.62},
+  {id:'19d2aac3388a9afr',code:'7861042592020',name:'SEMBRAO CEDRON',cost:0.62},
+  {id:'19d2aac3388vwm6i',code:'7861042592037',name:'SEMBRAO HIERBA BUENA',cost:0.62},
+  {id:'19d2aac3388fyiao',code:'7861042592044',name:'SEMBRAO HIERBA LUISA',cost:0.62},
+  {id:'19d2aac33888sexy',code:'7861042594000',name:'SEMBRAO JALAPENO',cost:0.54},
+  {id:'19d2aac3388gm0x9',code:'786104250133',name:'SEMBRAO LECHUGA CRESPA',cost:0.36},
+  {id:'19d2aac33886tljk',code:'7861223817638',name:'SEMBRAO LECHUGA CRIOLLA',cost:0.39},
+  {id:'19d2aac3388eor73',code:'7861223842104',name:'SEMBRAO LECHUGA ROJA CRESPA',cost:0.43},
+  {id:'19d2aac33887ffda',code:'7861042592068',name:'SEMBRAO MENTA  50 G',cost:0.62},
+  {id:'19d2aac3388p4tkz',code:'786104258437',name:'SEMBRAO NABO CHINO',cost:0.6},
+  {id:'19d2aac3388z0fa7',code:'7861042592075',name:'SEMBRAO ROMERO 50 G',cost:0.62},
+  {id:'19d2aac3388tc9bz',code:'7861223805758',name:'SEMBRAO TOMATE CHERRY GP 350 GR',cost:1.17},
+  {id:'19d2aac3388csatg',code:'7861042592266',name:'SEMBRAO TOMATE CHERRY HA',cost:0.98},
+  {id:'19d2aac3388c99qp',code:'7861042595021',name:'SEMBRAO TOMATE CHERRY PD',cost:1.17},
+  {id:'19d2aac3388c5l04',code:'786104259208',name:'SEMBRAO TOMILLO',cost:0.62},
+  {id:'19d2aac3388kpzai',code:'7861001912692',name:'SNOB ACEITUNA CON HUESO',cost:2.77},
+  {id:'19d2aac33883u4d2',code:'7861001912654',name:'SNOB ACEITUNAS ENTERAS 240 GR',cost:2.14},
+  {id:'19d2aac3388uzo7j',code:'0018538',name:'STEVIA EN HOJA',cost:0.45},
+  {id:'19d2aac33886av83',code:'SA15824',name:'SUQUINI AMARILLO X LB',cost:0.23},
+  {id:'19d2aac3388cx0jb',code:'S1122',name:'SUQUINI ENSALADA X LB',cost:0.32},
+  {id:'19d2aac33881l7mq',code:'S11585',name:'SUQUINI GRANDE X UNIDAD',cost:0.91},
+  {id:'19d2aac3388x7bsq',code:'786122380243',name:'SX ARANDANO VASITO',cost:1.48},
+  {id:'19d2aac3388fzqeo',code:'7861042540991',name:'SX CHAMP REBANADO GUP 220 G',cost:1.85},
+  {id:'19d2aac3388o8tpf',code:'7861042529187',name:'SX.CHAMPINONES ENTEROS K. 220G',cost:1.48},
+  {id:'19d2aac33887hvjr',code:'T1121',name:'TAMARINDO  X LB',cost:0.8},
+  {id:'19d2aac33886kqjq',code:'T16606',name:'TAXO',cost:0.03},
+  {id:'19d2aac3388dplb3',code:'7862101630301',name:'TERRASANA BABY ESPINACA  ORG 90-110G',cost:2.23},
+  {id:'19d2aac3388agryj',code:'7862101630271',name:'TERRASANA RUCULA ORG',cost:1.81},
+  {id:'19d2aac338831e3l',code:'0024945',name:'TOMATE CHERRY EN TARRINA',cost:1.0},
+  {id:'19d2aac3388afxjt',code:'7862103431029',name:'TOMATE CHERRY ESP GRE/GAR 330 G',cost:1.4},
+  {id:'19d2aac3388itmhu',code:'7861042578918',name:'TOMATE CHERRY LO FDA 340 G',cost:0.79},
+  {id:'19d2aac3388e6x4d',code:'7868000749601',name:'TOMATE CHERRY PERA CR 350 G',cost:1.05},
+  {id:'19d2aac3388erk4l',code:'7868001205502',name:'TOMATE CHERRY PERITA C/V 200 G',cost:0.73},
+  {id:'19d2aac33889pke9',code:'7862101902941',name:'TOMATE CHERRY TARRINA',cost:1.85},
+  {id:'19d2aac338828un7',code:'T1122',name:'TOMATE DE ARBOL',cost:0.17},
+  {id:'19d2aac3388orpp3',code:'T1120',name:'TOMATE DE CARNE X LB',cost:0.33},
+  {id:'19d2aac3388qj1sf',code:'7861000292795',name:'TOMATE PERITA 330 G',cost:1.14},
+  {id:'19d2aac3388jj0pb',code:'7861042592082',name:'TOMILLO FRESCO',cost:0.64},
+  {id:'19d2aac3388j3ah9',code:'T1123',name:'TUNA',cost:0.24},
+  {id:'19d2aac3388k7mur',code:'U1126554',name:'UVA ICA',cost:1.0},
+  {id:'19d2aac3388t62dl',code:'U1101',name:'UVA NEGRA PERUANA XLB',cost:1.12},
+  {id:'19d2aac33886pgg6',code:'U1124',name:'UVA NEGRA SIN PEPA',cost:1.67},
+  {id:'19d2aac3388z19ed',code:'U1120',name:'UVA ROJA CHILENA X LB',cost:1.44},
+  {id:'19d2aac3388k8itb',code:'P1149',name:'UVA ROJA PERUANA X LB',cost:1.39},
+  {id:'19d2aac3388u5ul6',code:'U1121',name:'UVA VERDE AMERICANA X LB',cost:1.67},
+  {id:'19d2aac3388y7wo0',code:'U1159',name:'UVA VERDE PERUANA',cost:1.56},
+  {id:'19d2aac338873g4q',code:'7861223803549',name:'UVILLAS EN VASO COOLTIVA 125 G',cost:0.55},
+  {id:'19d2aac3388lh95c',code:'V1120',name:'VAINITA X LB',cost:0.88},
+  {id:'19d2aac3388kqmsj',code:'044695105619',name:'VEGETALES MIXTOS FAC 500G',cost:2.12},
+  {id:'19d2aac3388cqubm',code:'V1150',name:'VERDURA X UND',cost:0.75},
+  {id:'19d2aac3388013df',code:'0025624',name:'VERDURABLES TARRINA',cost:1.75},
+  {id:'19d2aac3388j03fd',code:'7861042580454',name:'VERDURAS ATADO VAINITA 300 G',cost:1.63},
+  {id:'19d2aac3388oq4b0',code:'7868000384147',name:'VERMONTINA BROCOLI 450 G',cost:0.44},
+  {id:'19d2aac3388kyql1',code:'Y1120',name:'YUCA X LB',cost:0.35},
+  {id:'19d2aac3388c5hbs',code:'7862101630349',name:'ZANAHORIA BABY ORGANICA',cost:2.17},
+  {id:'19d2aac338853a72',code:'Z1185',name:'ZANAHORIA BLANCA',cost:0.47},
+  {id:'19d2aac33881tgnp',code:'0026273',name:'ZANAHORIA EN BANDEJA',cost:1.0},
+  {id:'19d2aac3388a705p',code:'7862101900022',name:'ZANAHORIA HORTANA 300G',cost:0.92},
+  {id:'19d2aac33888rawv',code:'Z1121',name:'ZANAHORIA X  LB',cost:0.17},
+  {id:'19d2aac3388i2p5p',code:'Z1115',name:'ZAPALLO  X PEDAZOS X LB',cost:0.13},
+  {id:'19d2aac3388up22l',code:'Z1123',name:'ZAPOTE X UND',cost:0.29}
+];
+
+// ── BOOT ───────────────────────────────────────────────────────
+load();
+renderSummary();
+renderEntry();
+</script>
+</body>
+</html>
